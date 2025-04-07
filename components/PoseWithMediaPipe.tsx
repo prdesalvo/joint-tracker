@@ -108,7 +108,7 @@ export default function PoseWithMediaPipe() {
     };
 
     loadScripts();
-  }, []);
+  }, [onResults]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
@@ -195,7 +195,7 @@ export default function PoseWithMediaPipe() {
     ctx.drawImage(results.image, 0, 0, width, height);
 
     if (results.poseLandmarks) {
-      if (window.drawConnectors && window.drawLandmarks) {
+      if (window.drawConnectors && window.drawLandmarks && window.POSE_CONNECTIONS) {
         window.drawConnectors(
           ctx,
           results.poseLandmarks,
