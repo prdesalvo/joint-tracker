@@ -10,7 +10,44 @@ export function getAngle(A: any, B: any, C: any) {
   return (angle * 180) / Math.PI;
 }
 
-export function drawAngleArc(ctx: CanvasRenderingContext2D, A: any, B: any, C: any, angle: number) {
+export function getTiltAngle(left: { x: number; y: number }, right: { x: number; y: number }): number {
+  const dx = right.x - left.x;
+  const dy = right.y - left.y;
+  const angleRadians = Math.atan2(dy, dx);
+  return angleRadians * (180 / Math.PI); // degrees
+}
+
+export function computeYawFromNose(landmarks: any[]): number | null {
+  const leftEye = landmarks[468];
+  const rightEye = landmarks[473];
+  const noseTip = landmarks[4];
+
+  if (!leftEye || !rightEye || !noseTip) return null;
+
+  // Midpoint between the outer corners of the eyes
+  const eyeCenter = {
+    x: (leftEye.x + rightEye.x) / 2,
+    z: (leftEye.z + rightEye.z) / 2,
+  };
+
+  // Horizontal (x) and depth (z) displacement of nose tip from eye center
+  const deltaX = noseTip.x - eyeCenter.x;
+  const deltaZ = noseTip.z - eyeCenter.z;
+
+  const yawRad = Math.atan2(deltaZ, deltaX);
+  const yawDeg = (yawRad * 180) / Math.PI;
+
+  return yawDeg  + 90;
+}
+
+export function drawAngleArc(
+  ctx: CanvasRenderingContext2D,
+  A: any,
+  B: any,
+  C: any,
+  angle: number,
+  isFlexion: boolean = false
+) {
   const radius = 40;
   const v1 = { x: A.x - B.x, y: A.y - B.y };
   const v2 = { x: C.x - B.x, y: C.y - B.y };
@@ -25,5 +62,8 @@ export function drawAngleArc(ctx: CanvasRenderingContext2D, A: any, B: any, C: a
 
   ctx.fillStyle = "#FFD700";
   ctx.font = "16px Arial";
-  ctx.fillText(`${(180 - angle).toFixed(1)}°`, B.x + 10, B.y - 10); // Subtracts the angle from 180 to get the flexion angle
+
+  const displayAngle = isFlexion ? (180 - angle) : angle;
+  ctx.fillText(`${displayAngle.toFixed(1)}°`, B.x + 10, B.y - 10);
 }
+

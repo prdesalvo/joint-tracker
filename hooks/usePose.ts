@@ -1,8 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function usePose(onResults: (results: any) => void) {
   const [pose, setPose] = useState<any>(null);
   const [ready, setReady] = useState(false);
+
+  // ✅ Create a ref to store the latest `onResults`
+  const onResultsRef = useRef(onResults);
+
+  useEffect(() => {
+    onResultsRef.current = onResults;
+  }, [onResults]);
 
   useEffect(() => {
     const loadScripts = async () => {
@@ -25,22 +32,26 @@ export function usePose(onResults: (results: any) => void) {
         });
 
         poseInstance.setOptions({
-          modelComplexity: 1,
+          modelComplexity: 2,
           smoothLandmarks: true,
           enableSegmentation: false,
           smoothSegmentation: false,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5,
+          minDetectionConfidence: 0.8,
+          minTrackingConfidence: 0.8,
         });
 
-        poseInstance.onResults(onResults);
+        // ✅ Use the latest value from the ref
+        poseInstance.onResults((results: any) => {
+          onResultsRef.current?.(results);
+        });
+
         setPose(poseInstance);
         setReady(true);
       }
     };
 
     loadScripts();
-  }, [onResults]);
+  }, []); // ✅ only runs once now
 
   return { pose, ready };
 }

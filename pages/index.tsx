@@ -1,27 +1,19 @@
-
 // pages/index.tsx
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
-
+import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { joints } from "../hooks/jointConfig";
 import AngleBar from "../components/AngleBar";
-import { getAngle, drawAngleArc } from "../utils/geometry";
-import { usePose } from "../hooks/usePose";
+import { joints } from "../hooks/jointConfig";
+import { computeYawFromNose, getAngle, drawAngleArc } from "../utils/geometry";
+import { useHolistic } from "../hooks/useHolistic";
 import { useCamera } from "../hooks/useCamera";
 import { useResizeCanvas } from "../hooks/useResizeCanvas";
 import { drawPoseAnnotations } from "../utils/mediapipeDrawing";
 
-
 export default function PoseTrackerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [, forceUpdate] = useState(0);
 
   const [selectedJointId, setSelectedJointId] = useState("leftElbow");
   const selectedJoint = useMemo(
@@ -35,7 +27,7 @@ export default function PoseTrackerPage() {
   const minAngle = useRef(180);
 
   const onResults = useCallback((results: any) => {
-    if (!selectedJoint || !results.poseLandmarks) return;
+    if (!selectedJoint) return;
     const canvas = canvasRef.current;
     const video = videoRef.current;
     if (!canvas || !video) return;
@@ -50,49 +42,72 @@ export default function PoseTrackerPage() {
     if (!ctx) return;
     drawPoseAnnotations(ctx, results);
 
-    const lm = results.poseLandmarks;
-    const toPx = ({ x, y, visibility }: any) => ({
-      x: x * width,
-      y: y * height,
-      visible: visibility > 0.7,
+    const landmarks = selectedJoint.type === "face"
+      ? results.faceLandmarks
+      : results.poseLandmarks;
+
+    if (!landmarks || selectedJoint.indices.some(i => !landmarks[i])) {
+      setAngle(null);
+      setVisible(false);
+      return;
+    }
+
+    const toPx = (point: any) => ({
+      x: point.x * width,
+      y: point.y * height,
+      visible: point.visibility === undefined || point.visibility > 0.7,
     });
 
-    const [A, B, C] = selectedJoint.indices.map((i) => toPx(lm[i]));
-    const allVisible = [A, B, C].every((p) => p.visible);
+    const points = selectedJoint.indices.map(i => toPx(landmarks[i]));
+    const allVisible = points.every(p => p.visible);
     setVisible(allVisible);
 
-    if (allVisible) {
-      const rawAngle = getAngle(A, B, C);
-      const flexion = 180 - rawAngle;
-      ctx && drawAngleArc(ctx, A, B, C, rawAngle);
-
-      if (flexion > maxAngle.current) maxAngle.current = flexion;
-      if (flexion < minAngle.current) minAngle.current = flexion;
-      setAngle(flexion);
-    } else {
+    if (!allVisible) {
       setAngle(null);
+      return;
     }
+
+    let rawAngle: number | null = null;
+
+    if (selectedJoint.calc === "yawFromNose") {
+      rawAngle = computeYawFromNose(results.faceLandmarks); // 👈 this is it!
+    } else if (points.length === 3) {
+      const [A, B, C] = points;
+      rawAngle = getAngle(A, B, C);
+      drawAngleArc(ctx, A, B, C, rawAngle, selectedJoint.isFlexion);
+    } else if (points.length === 2) {
+      const [left, right] = points;
+      const baseAngle = Math.atan2(right.y - left.y, right.x - left.x) * (180 / Math.PI);
+      rawAngle = baseAngle > 90 ? baseAngle - 180 : baseAngle < -90 ? baseAngle + 180 : baseAngle;
+    }
+
+    if (rawAngle !== null) {
+      if (rawAngle > maxAngle.current) maxAngle.current = rawAngle;
+      if (rawAngle < minAngle.current) minAngle.current = rawAngle;
+      setAngle(rawAngle);
+    }
+
   }, [selectedJoint]);
 
-
-  const { pose, ready } = usePose(onResults);
-  const { startCamera } = useCamera(videoRef, pose);
+  const { holistic, ready } = useHolistic(onResults);
+  const { startCamera } = useCamera(videoRef, holistic);
   useResizeCanvas(videoRef, canvasRef);
 
   const resetAngles = () => {
     maxAngle.current = 0;
     minAngle.current = 180;
     setAngle(null);
+    forceUpdate(n => n + 1);
   };
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <Header
         title="Joint Angle Tracker"
-        subtitle="Use your camera to track elbow, knee, and other joint flexion in real time using MediaPipe Pose."
-        icon={"📐"} // Optional: could be a logo too
+        subtitle="Use your camera to track elbow, knee, and other joint flexion in real time using MediaPipe Holistic."
+        icon={"📐"}
       />
-      <div className="flex gap-4 mb-4 items-center">
+      <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
         <select
           value={selectedJointId}
           onChange={(e) => setSelectedJointId(e.target.value)}
@@ -123,6 +138,7 @@ export default function PoseTrackerPage() {
         angle={angle}
         maxAngle={maxAngle.current}
         minAngle={minAngle.current}
+        type={selectedJoint?.type ?? "flexion"}
       />
 
       {!visible && (
