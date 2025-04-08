@@ -16,6 +16,13 @@ export default function PoseTrackerPage() {
   const [, forceUpdate] = useState(0);
 
   const [selectedJointId, setSelectedJointId] = useState("leftElbow");
+  const selectedJointIdRef = useRef(selectedJointId);
+
+  useEffect(() => {
+    selectedJointIdRef.current = selectedJointId;
+    resetAngles();
+  }, [selectedJointId]);
+
   const selectedJoint = useMemo(
     () => joints.find((j) => j.id === selectedJointId),
     [selectedJointId]
@@ -27,6 +34,8 @@ export default function PoseTrackerPage() {
   const minAngle = useRef(180);
 
   const onResults = useCallback((results: any) => {
+    const jointId = selectedJointIdRef.current; 
+    const selectedJoint = joints.find(j => j.id === jointId);
     if (!selectedJoint) return;
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -138,7 +147,6 @@ export default function PoseTrackerPage() {
         angle={angle}
         maxAngle={maxAngle.current}
         minAngle={minAngle.current}
-        type={selectedJoint?.type ?? "flexion"}
       />
 
       {!visible && (

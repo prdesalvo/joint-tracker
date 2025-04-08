@@ -4,12 +4,16 @@ export const joints = [
     label: "Neck Flexion",
     indices: [2, 5], // inner corners of eyes
     type: "pose",
+    calc: "None",
+    isFlexion: false
   },
   {
     id: "headTilt",
     label: "Head Tilt (Roll)",
     indices: [33, 263], // outer left eye, outer right eye
     type: "face",
+    calc: "None",
+    isFlexion: false
   },
   {
     id: "headRotation",
@@ -24,6 +28,7 @@ export const joints = [
     label: "Left Elbow",
     indices: [15, 13, 11], // wrist, elbow, shoulder (flipped to correct sign)
     type: "pose",
+    calc: "None",
     isFlexion: true
   },
   {
@@ -31,6 +36,7 @@ export const joints = [
     label: "Right Elbow",
     indices: [12, 14, 16], // shoulder, elbow, wrist
     type: "pose",
+    calc: "None",
     isFlexion: true
   },
   {
@@ -38,6 +44,7 @@ export const joints = [
     label: "Left Knee",
     indices: [23, 25, 27], // hip, knee, ankle
     type: "pose",
+    calc: "None",
     isFlexion: true
   },
   {
@@ -45,6 +52,7 @@ export const joints = [
     label: "Right Knee",
     indices: [24, 26, 28],
     type: "pose",
+    calc: "None",
     isFlexion: true,
   },
   {
@@ -52,6 +60,7 @@ export const joints = [
     label: "Left Shoulder Abduction",
     indices: [23, 11, 13], // hip, shoulder, elbow
     type: "pose",
+    calc: "None",
     isFlexion: false
   },
   {
@@ -59,6 +68,7 @@ export const joints = [
     label: "Right Shoulder Abduction",
     indices: [14, 12, 24], // elbow, shoulder, hip
     type: "pose",
+    calc: "None",
     isFlexion: false
   },
   {
@@ -66,6 +76,7 @@ export const joints = [
     label: "Left Hip Flexion",
     indices: [11, 23, 25], // shoulder, hip, knee
     type: "pose",
+    calc: "None",
     isFlexion: true
   },
   {
@@ -73,6 +84,7 @@ export const joints = [
     label: "Right Hip Flexion",
     indices: [12, 24, 26],
     type: "pose",
+    calc: "None",
     isFlexion: true
   },
 ];
