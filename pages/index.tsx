@@ -1,6 +1,13 @@
 
 // pages/index.tsx
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
+
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { joints } from "../hooks/jointConfig";
@@ -27,7 +34,7 @@ export default function PoseTrackerPage() {
   const maxAngle = useRef(0);
   const minAngle = useRef(180);
 
-  const onResults = (results: any) => {
+  const onResults = useCallback((results: any) => {
     if (!selectedJoint || !results.poseLandmarks) return;
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -40,9 +47,8 @@ export default function PoseTrackerPage() {
 
     ctx?.clearRect(0, 0, width, height);
     ctx?.drawImage(results.image, 0, 0, width, height);
-    if (!ctx) return; // ensure ctx is not null
+    if (!ctx) return;
     drawPoseAnnotations(ctx, results);
-
 
     const lm = results.poseLandmarks;
     const toPx = ({ x, y, visibility }: any) => ({
@@ -66,7 +72,8 @@ export default function PoseTrackerPage() {
     } else {
       setAngle(null);
     }
-  };
+  }, [selectedJoint]);
+
 
   const { pose, ready } = usePose(onResults);
   const { startCamera } = useCamera(videoRef, pose);
