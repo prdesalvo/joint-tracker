@@ -1,19 +1,14 @@
 export const joints = [
   {
-    id: "neckFlexion",
-    label: "Neck Flexion",
-    indices: [2, 5], // inner corners of eyes
-    type: "pose",
-    calc: "None",
-    isFlexion: false
-  },
-  {
     id: "headTilt",
     label: "Head Tilt (Roll)",
     indices: [33, 263], // outer left eye, outer right eye
     type: "face",
-    calc: "None",
-    isFlexion: false
+    calc: "tilt",
+    labels: {
+      min: "Left",
+      max: "Right",
+    }
   },
   {
     id: "headRotation",
@@ -21,39 +16,54 @@ export const joints = [
     indices: [234, 1, 454], // left cheek → nose → right cheek
     type: "face",
     calc: "yawFromNose",
-    isFlexion: false
+    labels: {
+      min: "Left",
+      max: "Right",
+    }
   },
   {
     id: "leftElbow",
     label: "Left Elbow",
     indices: [15, 13, 11], // wrist, elbow, shoulder (flipped to correct sign)
     type: "pose",
-    calc: "None",
-    isFlexion: true
+    calc: "Flexion",
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
   {
     id: "rightElbow",
     label: "Right Elbow",
     indices: [12, 14, 16], // shoulder, elbow, wrist
     type: "pose",
-    calc: "None",
-    isFlexion: true
+    calc: "Flexion",
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
   {
     id: "leftKnee",
     label: "Left Knee",
     indices: [23, 25, 27], // hip, knee, ankle
     type: "pose",
-    calc: "None",
-    isFlexion: true
+    calc: "Flexion",
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
   {
     id: "rightKnee",
     label: "Right Knee",
     indices: [24, 26, 28],
     type: "pose",
-    calc: "None",
-    isFlexion: true,
+    calc: "Flexion",
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
   {
     id: "leftShoulderAbduction",
@@ -61,7 +71,10 @@ export const joints = [
     indices: [23, 11, 13], // hip, shoulder, elbow
     type: "pose",
     calc: "None",
-    isFlexion: false
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
   {
     id: "rightShoulderAbduction",
@@ -69,7 +82,10 @@ export const joints = [
     indices: [14, 12, 24], // elbow, shoulder, hip
     type: "pose",
     calc: "None",
-    isFlexion: false
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
   {
     id: "leftHipFlexion",
@@ -77,7 +93,10 @@ export const joints = [
     indices: [11, 23, 25], // shoulder, hip, knee
     type: "pose",
     calc: "None",
-    isFlexion: true
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
   {
     id: "rightHipFlexion",
@@ -85,6 +104,9 @@ export const joints = [
     indices: [12, 24, 26],
     type: "pose",
     calc: "None",
-    isFlexion: true
+    labels: {
+      min: "Extension",
+      max: "Flexion",
+    }
   },
 ];

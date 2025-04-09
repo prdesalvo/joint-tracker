@@ -30,8 +30,8 @@ export function useHolistic(onResults: (results: any) => void) {
           enableSegmentation: false,
           smoothSegmentation: false,
           refineFaceLandmarks: true,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5,
+          minDetectionConfidence: 0.8,
+          minTrackingConfidence: 0.8,
         });
 
         holisticInstance.onResults(onResults);

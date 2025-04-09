@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AngleBar from "../components/AngleBar";
 import { joints } from "../hooks/jointConfig";
-import { computeYawFromNose, getAngle, drawAngleArc } from "../utils/geometry";
+import { computeYawFromNose, getAngle, getFlexionAngle, getTiltAngle, drawAngleArc, drawTiltAngleArc, drawYawArc } from "../utils/geometry";
 import { useHolistic } from "../hooks/useHolistic";
 import { useCamera } from "../hooks/useCamera";
 import { useResizeCanvas } from "../hooks/useResizeCanvas";
@@ -34,7 +34,7 @@ export default function PoseTrackerPage() {
   const minAngle = useRef(180);
 
   const onResults = useCallback((results: any) => {
-    const jointId = selectedJointIdRef.current; 
+    const jointId = selectedJointIdRef.current;
     const selectedJoint = joints.find(j => j.id === jointId);
     if (!selectedJoint) return;
     const canvas = canvasRef.current;
@@ -78,17 +78,50 @@ export default function PoseTrackerPage() {
 
     let rawAngle: number | null = null;
 
-    if (selectedJoint.calc === "yawFromNose") {
-      rawAngle = computeYawFromNose(results.faceLandmarks); // 👈 this is it!
-    } else if (points.length === 3) {
-      const [A, B, C] = points;
-      rawAngle = getAngle(A, B, C);
-      drawAngleArc(ctx, A, B, C, rawAngle, selectedJoint.isFlexion);
-    } else if (points.length === 2) {
-      const [left, right] = points;
-      const baseAngle = Math.atan2(right.y - left.y, right.x - left.x) * (180 / Math.PI);
-      rawAngle = baseAngle > 90 ? baseAngle - 180 : baseAngle < -90 ? baseAngle + 180 : baseAngle;
+    try {
+      if (selectedJoint.calc === "yawFromNose") {
+        rawAngle = computeYawFromNose(results.faceLandmarks);
+        if (rawAngle !== null) {
+          const centerX = width / 2;
+          const centerY = height * 0.25;
+          drawYawArc(ctx, centerX, centerY, rawAngle);
+        }
+      }
+
+      else if (selectedJoint.calc === "tilt") {
+        if (points.length >= 2) {
+          const [A, B] = points;
+          rawAngle = getTiltAngle(A, B);
+          drawTiltAngleArc(ctx, A, B, rawAngle);
+        } else {
+          console.warn("Tilt calculation requires 2 points");
+        }
+      }
+
+      else if (selectedJoint.calc === "Flexion") {
+        if (points.length === 3) {
+          const [A, B, C] = points;
+          rawAngle = getFlexionAngle(A, B, C);
+          drawAngleArc(ctx, A, B, C, rawAngle);
+        } else {
+          console.warn("Flexion calculation requires 3 points");
+        }
+      }
+
+      else if (points.length === 3) {
+        const [A, B, C] = points;
+        rawAngle = getAngle(A, B, C);
+        drawAngleArc(ctx, A, B, C, rawAngle);
+      }
+
+      else {
+        console.warn("Insufficient points for angle calculation", points);
+      }
+    } catch (err) {
+      console.error("Error while computing/drawing angle:", err);
+      rawAngle = null;
     }
+
 
     if (rawAngle !== null) {
       if (rawAngle > maxAngle.current) maxAngle.current = rawAngle;
@@ -147,6 +180,8 @@ export default function PoseTrackerPage() {
         angle={angle}
         maxAngle={maxAngle.current}
         minAngle={minAngle.current}
+        labels={selectedJoint?.labels}
+        calc={selectedJoint?.calc}
       />
 
       {!visible && (

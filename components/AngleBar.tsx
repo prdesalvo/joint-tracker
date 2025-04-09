@@ -5,13 +5,19 @@ interface AngleBarProps {
   maxAngle: number;
   minAngle: number;
   label: string;
+  labels?: {
+    min: string;
+    max: string;
+  };
+  calc?: string;
 }
+
 
 const ANGLE_MIN = -120;
 const ANGLE_MAX = 270;
 const ANGLE_RANGE = ANGLE_MAX - ANGLE_MIN;
 
-const AngleBar = React.memo(({ angle, maxAngle, minAngle, label }: AngleBarProps) => {
+const AngleBar = React.memo(({ angle, maxAngle, minAngle, label, labels, calc}: AngleBarProps) => {
   const normalize = (value: number) => Math.max(Math.min(value, ANGLE_MAX), ANGLE_MIN);
 
   const percentage = useMemo(() => {
@@ -33,8 +39,13 @@ const AngleBar = React.memo(({ angle, maxAngle, minAngle, label }: AngleBarProps
   const formattedAngle = useMemo(() => {
     if (angle === null) return "Waiting for landmarks...";
     const rounded = Math.round(angle);
-    return rounded < 0 ? `${Math.abs(rounded)}° hyperextension` : `${rounded}°`;
-  }, [angle]);
+
+    if (calc === "Flexion" && rounded < 0) {
+      return `${rounded}° hyperextension`;
+    }
+
+    return `${rounded}°`;
+  }, [angle, calc]);
 
   return (
     <div className="mb-4">
@@ -67,9 +78,10 @@ const AngleBar = React.memo(({ angle, maxAngle, minAngle, label }: AngleBarProps
 
       <div className="text-xs text-gray-600 mt-1">
         {angle !== null
-          ? `${formattedAngle} (Extension: ${Math.round(minAngle)}°, Flexion: ${Math.round(maxAngle)}°)`
-          : `Waiting for landmarks... (Extension: ${Math.round(minAngle)}°, Flexion: ${Math.round(maxAngle)}°)`}
+          ? `${formattedAngle} (${labels?.min ?? "Extension"}: ${Math.round(minAngle)}°, ${labels?.max ?? "Flexion"}: ${Math.round(maxAngle)}°)`
+          : `Waiting for landmarks... (${labels?.min ?? "Extension"}: ${Math.round(minAngle)}°, ${labels?.max ?? "Flexion"}: ${Math.round(maxAngle)}°)`}
       </div>
+
     </div>
   );
 });

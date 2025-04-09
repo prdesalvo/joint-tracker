@@ -10,6 +10,28 @@ export function getAngle(A: any, B: any, C: any) {
   return (angle * 180) / Math.PI;
 }
 
+// Used for flexion angles to get hyperextension
+export function getFlexionAngle(A: any, B: any, C: any): number {
+  // Vectors from B to A and B to C
+  const BA = { x: A.x - B.x, y: A.y - B.y };
+  const BC = { x: C.x - B.x, y: C.y - B.y };
+
+  // Compute the angles of each vector
+  const angleBA = Math.atan2(BA.y, BA.x);
+  const angleBC = Math.atan2(BC.y, BC.x);
+
+  // Get the signed angle between the vectors
+  let angleDeg = (angleBC - angleBA) * (180 / Math.PI);
+
+  // Normalize to 0–360°
+  angleDeg = (angleDeg + 360) % 360;
+
+  const deviationFromStraight = angleDeg - 180;
+  // e.g. -45° = flexed, +15° = hyperextended
+
+  return deviationFromStraight; // Flexion < 180, hyperextension > 180
+}
+
 export function getTiltAngle(left: { x: number; y: number }, right: { x: number; y: number }): number {
   const dx = right.x - left.x;
   const dy = right.y - left.y;
@@ -18,26 +40,41 @@ export function getTiltAngle(left: { x: number; y: number }, right: { x: number;
 }
 
 export function computeYawFromNose(landmarks: any[]): number | null {
-  const leftEye = landmarks[468];
-  const rightEye = landmarks[473];
+  const leftEyeOuter = landmarks[33];
+  const rightEyeOuter = landmarks[263];
   const noseTip = landmarks[4];
 
-  if (!leftEye || !rightEye || !noseTip) return null;
+  if (!leftEyeOuter || !rightEyeOuter || !noseTip) return null;
 
-  // Midpoint between the outer corners of the eyes
   const eyeCenter = {
-    x: (leftEye.x + rightEye.x) / 2,
-    z: (leftEye.z + rightEye.z) / 2,
+    x: (leftEyeOuter.x + rightEyeOuter.x) / 2,
+    z: (leftEyeOuter.z + rightEyeOuter.z) / 2,
   };
 
-  // Horizontal (x) and depth (z) displacement of nose tip from eye center
   const deltaX = noseTip.x - eyeCenter.x;
   const deltaZ = noseTip.z - eyeCenter.z;
 
   const yawRad = Math.atan2(deltaZ, deltaX);
   const yawDeg = (yawRad * 180) / Math.PI;
 
-  return yawDeg  + 90;
+  // Optionally clamp to ±90
+  return Math.max(-90, Math.min(90, yawDeg + 90));
+}
+
+function applyDefaultArcStyle(ctx: CanvasRenderingContext2D, color = "#FFCC00") {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = "black";
+  ctx.shadowBlur = 4;
+}
+
+function drawAngleLabel(ctx: CanvasRenderingContext2D, x: number, y: number, label: string, color = "#FFCC00") {
+  ctx.fillStyle = color;
+  ctx.font = "bold 16px Arial";
+  ctx.textAlign = "center";
+  ctx.shadowColor = "black";
+  ctx.shadowBlur = 4;
+  ctx.fillText(label, x, y);
 }
 
 export function drawAngleArc(
@@ -46,7 +83,6 @@ export function drawAngleArc(
   B: any,
   C: any,
   angle: number,
-  isFlexion: boolean = false
 ) {
   const radius = 40;
   const v1 = { x: A.x - B.x, y: A.y - B.y };
@@ -55,15 +91,59 @@ export function drawAngleArc(
   const end = Math.atan2(v2.y, v2.x);
 
   ctx.beginPath();
-  ctx.strokeStyle = "#FFD700";
-  ctx.lineWidth = 2;
+  applyDefaultArcStyle(ctx);
   ctx.arc(B.x, B.y, radius, start, end, false);
   ctx.stroke();
 
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "16px Arial";
-
-  const displayAngle = isFlexion ? (180 - angle) : angle;
-  ctx.fillText(`${displayAngle.toFixed(1)}°`, B.x + 10, B.y - 10);
+  drawAngleLabel(ctx, B.x + 10, B.y - 10, `${angle.toFixed(1)}°`);
 }
 
+export function drawTiltAngleArc(
+  ctx: CanvasRenderingContext2D,
+  left: { x: number; y: number },
+  right: { x: number; y: number },
+  angle: number
+) {
+  const radius = 40;
+  const centerX = (left.x + right.x) / 2;
+  const centerY = (left.y + right.y) / 2;
+
+  const dx = right.x - left.x;
+  const dy = right.y - left.y;
+  const theta = Math.atan2(dy, dx);
+
+  // Horizontal reference line
+  ctx.beginPath();
+  applyDefaultArcStyle(ctx);
+  ctx.moveTo(centerX - radius, centerY);
+  ctx.lineTo(centerX + radius, centerY);
+  ctx.stroke();
+
+  // Arc
+  ctx.beginPath();
+  applyDefaultArcStyle(ctx);
+  ctx.arc(centerX, centerY, radius, 0, theta, theta < 0);
+  ctx.stroke();
+
+  drawAngleLabel(ctx, centerX + 10, centerY - 10, `${angle.toFixed(1)}°`);
+}
+
+export function drawYawArc(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  angleDeg: number,
+  radius: number = 50,
+  label: string = `${Math.round(angleDeg)}°`
+) {
+  const startAngle = (-angleDeg * Math.PI) / 180;
+  const endAngle = 0;
+
+  ctx.save();
+  ctx.beginPath();
+  applyDefaultArcStyle(ctx, "#FFD700");
+  ctx.arc(centerX, centerY, radius, startAngle, endAngle, angleDeg < 0);
+  ctx.stroke();
+  drawAngleLabel(ctx, centerX, centerY - radius - 10, label, "#FFD700");
+  ctx.restore();
+}
