@@ -22,6 +22,17 @@ export const joints = [
     }
   },
   {
+    id: "neckFlexion",
+    label: "Neck Flexion/Extension",
+    calc: "Flexion",
+    type: "face",
+    indices: [10, 4, 152],
+    labels: {
+      min: "Extension (Look Up)",
+      max: "Flexion (Look Down)",
+    }
+  },
+  {
     id: "leftElbow",
     label: "Left Elbow",
     indices: [15, 13, 11], // wrist, elbow, shoulder (flipped to correct sign)

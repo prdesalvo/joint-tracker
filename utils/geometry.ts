@@ -40,26 +40,45 @@ export function getTiltAngle(left: { x: number; y: number }, right: { x: number;
 }
 
 export function computeYawFromNose(landmarks: any[]): number | null {
-  const leftEyeOuter = landmarks[33];
-  const rightEyeOuter = landmarks[263];
+  if (!landmarks) return null;
+
+  // First, try using eye + nose landmarks
+  const leftEye = landmarks[33];
+  const rightEye = landmarks[263];
   const noseTip = landmarks[4];
 
-  if (!leftEyeOuter || !rightEyeOuter || !noseTip) return null;
+  if (leftEye && rightEye && noseTip) {
+    const eyeCenter = {
+      x: (leftEye.x + rightEye.x) / 2,
+      z: (leftEye.z + rightEye.z) / 2,
+    };
 
-  const eyeCenter = {
-    x: (leftEyeOuter.x + rightEyeOuter.x) / 2,
-    z: (leftEyeOuter.z + rightEyeOuter.z) / 2,
-  };
+    const deltaX = noseTip.x - eyeCenter.x;
+    const deltaZ = noseTip.z - eyeCenter.z;
 
-  const deltaX = noseTip.x - eyeCenter.x;
-  const deltaZ = noseTip.z - eyeCenter.z;
+    const yawRad = Math.atan2(deltaZ, deltaX);
+    const yawDeg = (yawRad * 180) / Math.PI;
+    return Math.max(-90, Math.min(90, yawDeg + 90));
+  }
 
-  const yawRad = Math.atan2(deltaZ, deltaX);
-  const yawDeg = (yawRad * 180) / Math.PI;
+  // Fallback: use cheek or jaw landmarks for side profiles
+  const leftCheek = landmarks[205];
+  const rightCheek = landmarks[425];
 
-  // Optionally clamp to ±90
-  return Math.max(-90, Math.min(90, yawDeg + 90));
+  if (leftCheek && rightCheek) {
+    const deltaX = rightCheek.x - leftCheek.x;
+    const deltaZ = rightCheek.z - leftCheek.z;
+
+    const yawRad = Math.atan2(deltaZ, deltaX);
+    const yawDeg = (yawRad * 180) / Math.PI;
+
+    return Math.max(-90, Math.min(90, yawDeg));
+  }
+
+  // Fallback failed
+  return null;
 }
+
 
 function applyDefaultArcStyle(ctx: CanvasRenderingContext2D, color = "#FFCC00") {
   ctx.strokeStyle = color;

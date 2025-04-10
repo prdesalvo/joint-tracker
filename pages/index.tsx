@@ -15,7 +15,7 @@ export default function PoseTrackerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [, forceUpdate] = useState(0);
 
-  const [selectedJointId, setSelectedJointId] = useState("leftElbow");
+  const [selectedJointId, setSelectedJointId] = useState("headTilt");
   const selectedJointIdRef = useRef(selectedJointId);
 
   useEffect(() => {
@@ -30,8 +30,8 @@ export default function PoseTrackerPage() {
 
   const [angle, setAngle] = useState<number | null>(0);
   const [visible, setVisible] = useState(true);
-  const maxAngle = useRef(0);
-  const minAngle = useRef(180);
+  const maxAngle = useRef<number | null>(null);
+  const minAngle = useRef<number | null>(null);
 
   const onResults = useCallback((results: any) => {
     const jointId = selectedJointIdRef.current;
@@ -122,12 +122,17 @@ export default function PoseTrackerPage() {
       rawAngle = null;
     }
 
-
     if (rawAngle !== null) {
-      if (rawAngle > maxAngle.current) maxAngle.current = rawAngle;
-      if (rawAngle < minAngle.current) minAngle.current = rawAngle;
-      setAngle(rawAngle);
+      if (maxAngle.current === null || rawAngle > maxAngle.current) {
+        maxAngle.current = rawAngle;
+      }
+
+      if (minAngle.current === null || rawAngle < minAngle.current) {
+        minAngle.current = rawAngle;
+      }
     }
+
+    setAngle(rawAngle);
 
   }, [selectedJoint]);
 
@@ -136,8 +141,8 @@ export default function PoseTrackerPage() {
   useResizeCanvas(videoRef, canvasRef);
 
   const resetAngles = () => {
-    maxAngle.current = 0;
-    minAngle.current = 180;
+    maxAngle.current = null;
+    minAngle.current = null;
     setAngle(null);
     forceUpdate(n => n + 1);
   };
