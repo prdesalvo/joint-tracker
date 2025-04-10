@@ -20,6 +20,10 @@ export default function PoseTrackerPage() {
   const [, forceUpdate] = useState(0);
   const [selectedJointId, setSelectedJointId] = useState("headTilt");
   const selectedJointIdRef = useRef(selectedJointId);
+  const [patientName, setPatientName] = useState("Test Patient");
+  const [sessionDate, setSessionDate] = useState(() =>
+    new Date().toISOString().substring(0, 10)
+  );
   const [snapshots, setSnapshots] = useState<
     { image: string; angle: number | null; label: string; timestamp: number }[]
   >([]);
@@ -143,8 +147,19 @@ export default function PoseTrackerPage() {
   }, [selectedJoint]);
 
   const { holistic, ready } = useHolistic(onResults);
-  const { startCamera } = useCamera(videoRef, holistic);
+  // const { startCamera } = useCamera(videoRef, holistic);
+  const { startCamera, stopCamera, cameraStarted } = useCamera(videoRef, holistic);
+
   useResizeCanvas(videoRef, canvasRef);
+
+  const handleToggleCamera = async () => {
+    if (cameraStarted) {
+      stopCamera();
+    } else {
+      await startCamera();
+    }
+  };
+
 
   const resetAngles = () => {
     maxAngle.current = null;
@@ -202,7 +217,7 @@ export default function PoseTrackerPage() {
         <motion.select
           whileHover={{ scale: 1.02 }}
           value={selectedJointId}
-          onChange={(e) => setSelectedJointId(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedJointId(e.target.value)}
           className="border p-2 rounded"
         >
           {joints.map((joint) => (
@@ -214,10 +229,10 @@ export default function PoseTrackerPage() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={startCamera}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={handleToggleCamera}
+          className={`${cameraStarted ? "bg-red-600" : "bg-blue-600"} text-white px-4 py-2 rounded`}
         >
-          Start Camera
+          {cameraStarted ? "Stop Camera" : "Start Camera"}
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -245,13 +260,24 @@ export default function PoseTrackerPage() {
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => exportSnapshotsToPDF(snapshots)}
+            onClick={() => exportSnapshotsToPDF(snapshots, patientName, sessionDate)}
             className="bg-purple-600 text-white px-4 py-2 rounded"
           >
             Download PDF Report
           </motion.button>
         )}
       </div>
+
+      {selectedJoint && (
+        <div className="bg-blue-50 p-4 rounded border border-blue-200 text-sm mb-4">
+          <h3 className="font-semibold text-blue-800 mb-1">
+            Instructions for: {selectedJoint.label}
+          </h3>
+          <p><strong>What:</strong> {selectedJoint.instructions}</p>
+          <p><strong>Position:</strong> {selectedJoint.positioning}</p>
+          <p><strong>Visibility:</strong> {selectedJoint.visibility}</p>
+        </div>
+      )}
 
 
       <motion.div
@@ -268,13 +294,13 @@ export default function PoseTrackerPage() {
           calc={selectedJoint?.calc}
         />
 
-        {!visible && (
+        {!visible && selectedJoint?.visibility && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-red-600 text-sm mb-2"
+            className="text-red-600 text-lg mb-2"
           >
-            {selectedJoint?.label} not fully visible. Ensure all points are in view.
+            {selectedJoint.visibility}
           </motion.div>
         )}
 
