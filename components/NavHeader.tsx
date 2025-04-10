@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from "framer-motion";
 
+import { motion } from 'framer-motion';
+
 const NavHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -33,13 +35,19 @@ const NavHeader = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {menuItems.map((item) => (
-              <Link
+              <motion.div
                 key={item.href}
-                href={item.href}
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                {item.label}
-              </Link>
+                <Link
+                  href={item.href}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm"
+                >
+                  {item.label}
+                </Link>
+              </motion.div>
             ))}
           </div>
 
@@ -81,14 +89,20 @@ const NavHeader = () => {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {menuItems.map((item) => (
-              <Link
+              <motion.div
                 key={item.href}
-                href={item.href}
-                className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                {item.label}
-              </Link>
+                <Link
+                  href={item.href}
+                  className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
