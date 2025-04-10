@@ -244,10 +244,13 @@ export default function PoseTrackerPage() {
 
       <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
         <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleCaptureSnapshot}
-          className="bg-green-600 text-white px-4 py-2 rounded"
+          className="bg-green-600 text-white px-4 py-2 rounded shadow-lg hover:shadow-xl transition-shadow"
         >
           Capture Snapshot
         </motion.button>
