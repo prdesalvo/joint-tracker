@@ -229,20 +229,26 @@ export default function PoseTrackerPage() {
         </motion.button>
       </motion.div>
 
-      <button
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={handleCaptureSnapshot}
         className="bg-green-600 text-white px-4 py-2 rounded"
       >
         Capture Snapshot
-      </button>
+      </motion.button>
 
       {snapshots.length > 0 && (
-        <button
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => exportSnapshotsToPDF(snapshots)}
-          className="bg-purple-600 text-white px-4 py-2 rounded"
+          className="bg-purple-600 text-white px-4 py-2 rounded ml-2"
         >
           Download PDF Report
-        </button>
+        </motion.button>
       )}
 
 
