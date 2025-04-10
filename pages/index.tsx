@@ -207,39 +207,34 @@ export default function PoseTrackerPage() {
       </motion.div>
 
       <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch"
       >
-        <motion.select
-          whileHover={{ scale: 1.02 }}
+        <select
           value={selectedJointId}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedJointId(e.target.value)}
-          className="border p-2 rounded"
+          className="border p-2 rounded hover:scale-102 transition-transform"
         >
           {joints.map((joint) => (
             <option key={joint.id} value={joint.id}>
               {joint.label}
             </option>
           ))}
-        </motion.select>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        </select>
+        <button
           onClick={handleToggleCamera}
-          className={`${cameraStarted ? "bg-red-600" : "bg-blue-600"} text-white px-4 py-2 rounded`}
+          className={`${cameraStarted ? "bg-red-600" : "bg-blue-600"} text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform`}
         >
           {cameraStarted ? "Stop Camera" : "Start Camera"}
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        </button>
+        <button
           onClick={resetAngles}
-          className="bg-gray-600 text-white px-4 py-2 rounded"
+          className="bg-gray-600 text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform"
         >
           Reset Max Angles
-        </motion.button>
+        </button>
       </motion.div>
 
       <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
