@@ -1,5 +1,5 @@
-// pages/index.tsx
 import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AngleBar from "../components/AngleBar";
@@ -14,7 +14,6 @@ export default function PoseTrackerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [, forceUpdate] = useState(0);
-
   const [selectedJointId, setSelectedJointId] = useState("headTilt");
   const selectedJointIdRef = useRef(selectedJointId);
 
@@ -148,14 +147,32 @@ export default function PoseTrackerPage() {
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <Header
-        title="Joint Angle Tracker"
-        subtitle="Use your camera to track elbow, knee, and other joint flexion in real time using MediaPipe Holistic."
-        icon={"📐"}
-      />
-      <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
-        <select
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 max-w-3xl mx-auto"
+    >
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <Header
+          title="Joint Angle Tracker"
+          subtitle="Use your camera to track elbow, knee, and other joint flexion in real time using MediaPipe Holistic."
+          icon={"📐"}
+        />
+      </motion.div>
+
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch"
+      >
+        <motion.select
+          whileHover={{ scale: 1.02 }}
           value={selectedJointId}
           onChange={(e) => setSelectedJointId(e.target.value)}
           className="border p-2 rounded"
@@ -165,41 +182,62 @@ export default function PoseTrackerPage() {
               {joint.label}
             </option>
           ))}
-        </select>
-        <button
+        </motion.select>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={startCamera}
           className="bg-blue-600 text-white px-4 py-2 rounded"
         >
           Start Camera
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={resetAngles}
           className="bg-gray-600 text-white px-4 py-2 rounded"
         >
           Reset Max Angles
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      <AngleBar
-        label={selectedJoint?.label ?? ""}
-        angle={angle}
-        maxAngle={maxAngle.current}
-        minAngle={minAngle.current}
-        labels={selectedJoint?.labels}
-        calc={selectedJoint?.calc}
-      />
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
+        <AngleBar
+          label={selectedJoint?.label ?? ""}
+          angle={angle}
+          maxAngle={maxAngle.current}
+          minAngle={minAngle.current}
+          labels={selectedJoint?.labels}
+          calc={selectedJoint?.calc}
+        />
 
-      {!visible && (
-        <div className="text-red-600 text-sm mb-2">
-          {selectedJoint?.label} not fully visible. Ensure all points are in view.
+        {!visible && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-red-600 text-sm mb-2"
+          >
+            {selectedJoint?.label} not fully visible. Ensure all points are in view.
+          </motion.div>
+        )}
+
+        <div className="relative">
+          <video ref={videoRef} playsInline className="w-full" />
+          <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
         </div>
-      )}
+      </motion.div>
 
-      <div className="relative">
-        <video ref={videoRef} playsInline className="w-full" />
-        <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
-      </div>
-      <Footer />
-    </div>
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+      >
+        <Footer />
+      </motion.div>
+    </motion.div>
   );
 }
