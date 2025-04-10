@@ -8,8 +8,8 @@ const NavHeader = () => {
   const menuItems = [
     { label: 'Home', href: '/' },
     { label: 'About', href: '/about' },
-    { label: 'Measurements', href: '/measurements' },
-    { label: 'Help', href: '/help' },
+    // { label: 'Measurements', href: '/measurements' },
+    // { label: 'Help', href: '/help' },
   ];
 
   return (

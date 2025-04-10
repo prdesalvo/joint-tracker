@@ -202,11 +202,8 @@ export default function PoseTrackerPage() {
         transition={{ delay: 0.2, duration: 0.5 }}
       >
         <NavHeader />
-        <div className="text-center mb-6">
-          <p className="text-gray-600 mt-1">
-            Use your camera to track elbow, knee, and other joint flexion in real time using MediaPipe Holistic.
-          </p>
-        </div>
+
+        <br></br>
       </motion.div>
 
       <motion.div 
