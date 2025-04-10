@@ -9,6 +9,10 @@ import { useHolistic } from "../hooks/useHolistic";
 import { useCamera } from "../hooks/useCamera";
 import { useResizeCanvas } from "../hooks/useResizeCanvas";
 import { drawPoseAnnotations } from "../utils/mediapipeDrawing";
+import { capturePoseSnapshot } from "../utils/capture";
+import { exportSnapshotsToPDF } from "../utils/exportPdf";
+
+
 
 export default function PoseTrackerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -16,6 +20,9 @@ export default function PoseTrackerPage() {
   const [, forceUpdate] = useState(0);
   const [selectedJointId, setSelectedJointId] = useState("headTilt");
   const selectedJointIdRef = useRef(selectedJointId);
+  const [snapshots, setSnapshots] = useState<
+    { image: string; angle: number | null; label: string; timestamp: number }[]
+  >([]);
 
   useEffect(() => {
     selectedJointIdRef.current = selectedJointId;
@@ -146,6 +153,27 @@ export default function PoseTrackerPage() {
     forceUpdate(n => n + 1);
   };
 
+  const handleCaptureSnapshot = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas || selectedJoint === undefined) return;
+
+    const image = capturePoseSnapshot(video, canvas);
+    if (!image) return;
+
+    setSnapshots((prev) => [
+      ...prev,
+      {
+        image,
+        angle,
+        label: selectedJoint.label,
+        timestamp: Date.now(),
+      },
+    ]);
+  };
+
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -201,6 +229,23 @@ export default function PoseTrackerPage() {
         </motion.button>
       </motion.div>
 
+      <button
+        onClick={handleCaptureSnapshot}
+        className="bg-green-600 text-white px-4 py-2 rounded"
+      >
+        Capture Snapshot
+      </button>
+
+      {snapshots.length > 0 && (
+        <button
+          onClick={() => exportSnapshotsToPDF(snapshots)}
+          className="bg-purple-600 text-white px-4 py-2 rounded"
+        >
+          Download PDF Report
+        </button>
+      )}
+
+
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -236,6 +281,26 @@ export default function PoseTrackerPage() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.5 }}
       >
+
+        {snapshots.length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-2">Captured Snapshots</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {snapshots.map((shot, idx) => (
+                <div key={idx} className="border p-2 rounded shadow">
+                  <img src={shot.image} alt={`Snapshot ${idx}`} className="w-full" />
+                  <div className="text-sm mt-2">
+                    <strong>{shot.label}</strong>: {Math.round(shot.angle ?? 0)}°
+                    <br />
+                    {new Date(shot.timestamp).toLocaleTimeString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        
         <Footer />
       </motion.div>
     </motion.div>
