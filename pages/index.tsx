@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import Header from "../components/Header";
+import NavHeader from "../components/NavHeader";
 import Footer from "../components/Footer";
 import AngleBar from "../components/AngleBar";
 import { joints } from "../hooks/jointConfig";
@@ -201,11 +201,12 @@ export default function PoseTrackerPage() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <Header
-          title="Joint Angle Tracker"
-          subtitle="Use your camera to track elbow, knee, and other joint flexion in real time using MediaPipe Holistic."
-          icon={"📐"}
-        />
+        <NavHeader />
+        <div className="text-center mb-6">
+          <p className="text-gray-600 mt-1">
+            Use your camera to track elbow, knee, and other joint flexion in real time using MediaPipe Holistic.
+          </p>
+        </div>
       </motion.div>
 
       <motion.div 
