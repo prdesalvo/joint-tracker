@@ -52,16 +52,14 @@ export default function PoseTrackerPage() {
   useEffect(() => {
     if (!ready || !selectedDeviceId) return;
 
-    const switchCamera = async () => {
+    if (cameraStarted && selectedDeviceId) {
       console.log("🧭 Switching to camera:", selectedDeviceId);
-      await stopCamera();
+      stopCamera();
       setTimeout(() => {
-        startCamera(); // Let user explicitly re-toggle if needed
-      }, 250);
-    };
-
-    switchCamera();
-  }, [selectedDeviceId]);
+        startCamera();
+      }, 500);
+    }
+  }, [selectedDeviceId, cameraStarted]);
 
 
 
@@ -249,10 +247,10 @@ export default function PoseTrackerPage() {
         range: selectedJoint.range, // Add range to the snapshot
       },
     ]);
-    
+
   };
 
-  
+
 
 
 
@@ -311,7 +309,7 @@ export default function PoseTrackerPage() {
           </select>
         )}
 
-        
+
         <button
           onClick={resetAngles}
           className="bg-gray-600 text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform"
@@ -445,7 +443,7 @@ export default function PoseTrackerPage() {
           </div>
         )}
 
-        
+
         <Footer />
       </motion.div>
     </motion.div>
