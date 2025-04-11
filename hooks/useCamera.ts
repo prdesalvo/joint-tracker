@@ -28,9 +28,9 @@ export function useCamera(
     };
   }, []);
 
-  const stopCamera = useCallback(() => {
+  const stopCamera = useCallback(async () => {
     if (cameraRef.current) {
-      cameraRef.current.stop();
+      await cameraRef.current.stop();
       cameraRef.current = null;
     }
 
@@ -43,6 +43,7 @@ export function useCamera(
 
     setCameraStarted(false);
   }, []);
+
 
 
   const startCamera = useCallback(async () => {
@@ -87,19 +88,6 @@ export function useCamera(
       setCameraStarted(false);
     }
   }, [pose, videoRef, deviceId, cameraUtilsReady, stopCamera]);
-
-  useEffect(() => {
-    if (!didInit.current) {
-      didInit.current = true;
-      return;
-    }
-
-    if (deviceId && cameraStarted) {
-      console.log("🔁 Switching camera to:", deviceId);
-      stopCamera();
-      setTimeout(() => startCamera(), 100); // Add small delay between stop and start
-    }
-  }, [deviceId, startCamera, stopCamera]);
 
   return { startCamera, stopCamera, cameraStarted };
 }
