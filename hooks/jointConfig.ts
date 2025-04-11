@@ -97,7 +97,7 @@ export const joints = [
   {
     id: "leftKnee",
     label: "Left Knee",
-    indices: [23, 25, 27],
+    indices: [27, 25, 23],
     type: "pose",
     calc: "Flexion",
     labels: {
@@ -173,9 +173,9 @@ export const joints = [
   {
     id: "leftHipFlexion",
     label: "Left Hip Flexion",
-    indices: [11, 23, 25],
+    indices: [25, 23, 11],
     type: "pose",
-    calc: "None",
+    calc: "Flexion",
     labels: {
       min: "Extension",
       max: "Flexion",
@@ -194,7 +194,7 @@ export const joints = [
     label: "Right Hip Flexion",
     indices: [12, 24, 26],
     type: "pose",
-    calc: "None",
+    calc: "Flexion",
     labels: {
       min: "Extension",
       max: "Flexion",

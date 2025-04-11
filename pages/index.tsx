@@ -12,8 +12,6 @@ import { drawPoseAnnotations } from "../utils/mediapipeDrawing";
 import { capturePoseSnapshot } from "../utils/capture";
 import { exportSnapshotsToPDF } from "../utils/exportPdf";
 
-
-
 export default function PoseTrackerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,13 +49,6 @@ export default function PoseTrackerPage() {
       });
     });
   }, []);
-
-
-
-
-
-
-
 
 
   useEffect(() => {
