@@ -49,6 +49,8 @@ export default function PoseTrackerPage() {
   }, []);
 
 
+  const { startCamera, stopCamera, cameraStarted } = useCamera(videoRef, holistic, selectedDeviceId);
+
   useEffect(() => {
     if (!ready || !selectedDeviceId) return;
 
@@ -59,7 +61,7 @@ export default function PoseTrackerPage() {
         startCamera();
       }, 500);
     }
-  }, [selectedDeviceId, cameraStarted]);
+  }, [selectedDeviceId, cameraStarted, startCamera, stopCamera, ready]);
 
 
 
