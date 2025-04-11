@@ -425,6 +425,8 @@ export default function PoseTrackerPage() {
           <video ref={videoRef} playsInline className="w-full" />
           <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
         </div>
+        
+        <hr className="my-8 border-t border-gray-200" />
       </motion.div>
 
       <motion.div
@@ -435,7 +437,20 @@ export default function PoseTrackerPage() {
 
         {snapshots.length > 0 && (
           <div className="mt-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+            <h2 className="text-lg font-semibold mb-4">Captured Snapshots</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {snapshots.map((shot, idx) => (
+                <div key={idx} className="border p-2 rounded shadow">
+                  <img src={shot.image} alt={`Snapshot ${idx}`} className="w-full" />
+                  <div className="text-sm mt-2">
+                    <strong>{shot.label}</strong>: {Math.round(shot.angle ?? 0)}°
+                    <br />
+                    {new Date(shot.timestamp).toLocaleTimeString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <label htmlFor="patientName" className="block text-lg font-semibold text-gray-800 mb-2">
                 Patient Name
               </label>
@@ -455,19 +470,7 @@ export default function PoseTrackerPage() {
                 </div>
               </div>
             </div>
-            <h2 className="text-lg font-semibold mb-2">Captured Snapshots</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {snapshots.map((shot, idx) => (
-                <div key={idx} className="border p-2 rounded shadow">
-                  <img src={shot.image} alt={`Snapshot ${idx}`} className="w-full" />
-                  <div className="text-sm mt-2">
-                    <strong>{shot.label}</strong>: {Math.round(shot.angle ?? 0)}°
-                    <br />
-                    {new Date(shot.timestamp).toLocaleTimeString()}
-                  </div>
-                </div>
-              ))}
-            </div>
+            
           </div>
         )}
 
