@@ -33,17 +33,16 @@ export function useCamera(
       cameraRef.current = null;
     }
 
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
+    const tracks = videoRef.current?.srcObject?.getTracks();
+    tracks?.forEach((track) => track.stop());
 
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
 
     setCameraStarted(false);
-  }, [videoRef]);
+  }, []);
+
 
   const startCamera = useCallback(async () => {
     if (!pose || !videoRef.current || !deviceId || !cameraUtilsReady) {

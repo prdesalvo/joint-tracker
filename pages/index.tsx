@@ -32,6 +32,7 @@ export default function PoseTrackerPage() {
   const [showDelayPicker, setShowDelayPicker] = useState(false);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const didInit = useRef(false);
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then((devices) => {
@@ -237,11 +238,17 @@ export default function PoseTrackerPage() {
   };
 
   useEffect(() => {
+    if (!didInit.current) {
+      didInit.current = true;
+      return;
+    }
+
     if (cameraStarted && selectedDeviceId) {
+      console.log("🔁 Switching camera to:", selectedDeviceId);
       stopCamera();
       startCamera();
     }
-  }, []); // Only run once on mount when camera is started
+  }, [selectedDeviceId]);
 
 
 
