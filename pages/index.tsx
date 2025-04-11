@@ -435,6 +435,19 @@ export default function PoseTrackerPage() {
 
         {snapshots.length > 0 && (
           <div className="mt-6">
+            <div className="mb-4">
+              <label htmlFor="patientName" className="block text-sm font-medium text-gray-700 mb-1">
+                Patient Name (for PDF report)
+              </label>
+              <input
+                type="text"
+                id="patientName"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
+                placeholder="Enter patient name"
+              />
+            </div>
             <h2 className="text-lg font-semibold mb-2">Captured Snapshots</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {snapshots.map((shot, idx) => (
