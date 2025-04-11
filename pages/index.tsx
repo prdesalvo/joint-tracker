@@ -32,13 +32,17 @@ export default function PoseTrackerPage() {
   const [showDelayPicker, setShowDelayPicker] = useState(false);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [showCameraPicker, setShowCameraPicker] = useState(false);
+  const selectedCameraLabel = useMemo(() => {
+    const selected = cameras.find((c) => c.deviceId === selectedDeviceId);
+    return selected?.label || `Camera ${selected?.deviceId.slice(-4)}`;
+  }, [cameras, selectedDeviceId]);
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then((devices) => {
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
       setCameras(videoInputs);
 
-      // ✅ Only assign default camera on first load
       setSelectedDeviceId((currentId) => {
         if (!currentId && videoInputs.length > 0) {
           return videoInputs[0].deviceId;
@@ -49,19 +53,8 @@ export default function PoseTrackerPage() {
   }, []);
 
 
-  const { startCamera, stopCamera, cameraStarted } = useCamera(videoRef, holistic, selectedDeviceId);
 
-  useEffect(() => {
-    if (!ready || !selectedDeviceId) return;
 
-    if (cameraStarted && selectedDeviceId) {
-      console.log("🧭 Switching to camera:", selectedDeviceId);
-      stopCamera();
-      setTimeout(() => {
-        startCamera();
-      }, 500);
-    }
-  }, [selectedDeviceId, cameraStarted, startCamera, stopCamera, ready]);
 
 
 
@@ -190,6 +183,13 @@ export default function PoseTrackerPage() {
   // const { startCamera } = useCamera(videoRef, holistic);
   const { startCamera, stopCamera, cameraStarted } = useCamera(videoRef, holistic, selectedDeviceId);
 
+  useEffect(() => {
+    if (cameraStarted && selectedDeviceId) {
+      stopCamera();
+      startCamera();
+    }
+  }, [selectedDeviceId]);
+
   useResizeCanvas(videoRef, canvasRef);
 
   const handleToggleCamera = async () => {
@@ -197,7 +197,7 @@ export default function PoseTrackerPage() {
     if (cameraStarted) {
       stopCamera();
     } else {
-      await startCamera(); 
+      await startCamera();
     }
   };
 
@@ -257,7 +257,7 @@ export default function PoseTrackerPage() {
 
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -273,7 +273,7 @@ export default function PoseTrackerPage() {
         <br></br>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -298,18 +298,33 @@ export default function PoseTrackerPage() {
         </button>
 
         {cameras.length > 1 && (
-          <select
-            value={selectedDeviceId ?? ""}
-            onChange={(e) => setSelectedDeviceId(e.target.value)}
-            className="border p-2 rounded text-sm"
-          >
-            {cameras.map((cam) => (
-              <option key={cam.deviceId} value={cam.deviceId}>
-                {cam.label || `Camera ${cam.deviceId.slice(-4)}`}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <button
+              onClick={() => setShowCameraPicker((prev) => !prev)}
+              className="bg-gray-700 text-white px-3 py-2 rounded"
+            >
+              🎥
+            </button>
+
+            {showCameraPicker && (
+              <div className="absolute top-full mt-2 left-0 bg-white border rounded shadow-md p-2 z-10">
+                {cameras.map((cam) => (
+                  <button
+                    key={cam.deviceId}
+                    onClick={() => {
+                      setSelectedDeviceId(cam.deviceId);
+                      setShowCameraPicker(false);
+                    }}
+                    className="block w-full text-left text-sm px-2 py-1 hover:bg-gray-100"
+                  >
+                    {cam.label || `Camera ${cam.deviceId.slice(-4)}`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
+
 
 
         <button
