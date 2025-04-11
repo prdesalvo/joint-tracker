@@ -10,14 +10,25 @@ interface AngleBarProps {
     max: string;
   };
   calc?: string;
+  range?: { good: number; fair: number; poor: number };
 }
-
 
 const ANGLE_MIN = -270;
 const ANGLE_MAX = 270;
 const ANGLE_RANGE = ANGLE_MAX - ANGLE_MIN;
 
-const AngleBar = React.memo(({ angle, maxAngle, minAngle, label, labels, calc }: AngleBarProps) => {
+function getPerformanceColor(angle: number | null, range?: { good: number; fair: number; poor: number }) {
+  if (angle === null || !range) return "bg-gray-400";
+
+  if (angle >= range.good) return "bg-green-500";
+  if (angle >= range.fair) return "bg-yellow-400";
+  if (angle >= range.poor) return "bg-red-500";
+
+  return "bg-gray-400";
+}
+
+
+const AngleBar = React.memo(({ angle, maxAngle, minAngle, label, labels, calc, range }: AngleBarProps) => {
   const normalize = (value: number) => Math.max(Math.min(value, ANGLE_MAX), ANGLE_MIN);
 
   const percentage = useMemo(() => {
@@ -94,13 +105,13 @@ const AngleBar = React.memo(({ angle, maxAngle, minAngle, label, labels, calc }:
         {/* Current angle as a blue circle */}
         {angle !== null && (
           <div
-            className="absolute top-1/2 transform -translate-y-1/2 w-5 h-5 bg-blue-500 rounded-full border border-white shadow"
+            className={`absolute top-1/2 transform -translate-y-1/2 w-5 h-5 rounded-full border border-white shadow ${getPerformanceColor(angle, range)}`}
             style={{ left: `calc(${percentage}% - 0.625rem)` }}
             title={`Current Angle: ${Math.round(angle)}°`}
           />
         )}
-      </div>
 
+      </div>
 
       <div className="text-xs text-gray-600 mt-1">
         {angle !== null

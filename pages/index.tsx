@@ -27,6 +27,12 @@ export default function PoseTrackerPage() {
   const [snapshots, setSnapshots] = useState<
     { image: string; angle: number | null; label: string; timestamp: number }[]
   >([]);
+  const [delaySeconds, setDelaySeconds] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [showDelayPicker, setShowDelayPicker] = useState(false);
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+
 
   useEffect(() => {
     selectedJointIdRef.current = selectedJointId;
@@ -148,15 +154,16 @@ export default function PoseTrackerPage() {
 
   const { holistic, ready } = useHolistic(onResults);
   // const { startCamera } = useCamera(videoRef, holistic);
-  const { startCamera, stopCamera, cameraStarted } = useCamera(videoRef, holistic);
+  const { startCamera, stopCamera, cameraStarted } = useCamera(videoRef, holistic, selectedDeviceId);
 
   useResizeCanvas(videoRef, canvasRef);
 
   const handleToggleCamera = async () => {
+    if (!ready) return;
     if (cameraStarted) {
       stopCamera();
     } else {
-      await startCamera();
+      await startCamera(); 
     }
   };
 
@@ -168,11 +175,32 @@ export default function PoseTrackerPage() {
     forceUpdate(n => n + 1);
   };
 
-  const handleCaptureSnapshot = () => {
+  const handleDelayedSnapshot = () => {
+    if (delaySeconds === 0) {
+      doCapture();
+      return;
+    }
+
+    let seconds = delaySeconds;
+    setCountdown(seconds);
+
+    const countdownInterval = setInterval(() => {
+      seconds -= 1;
+      setCountdown(seconds);
+
+      if (seconds === 0) {
+        clearInterval(countdownInterval);
+        setCountdown(null);
+        doCapture();
+      }
+    }, 1000);
+  };
+
+  const doCapture = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (!video || !canvas || selectedJoint === undefined) return;
+    if (!video || !canvas || !selectedJoint) return;
 
     const image = capturePoseSnapshot(video, canvas);
     if (!image) return;
@@ -184,9 +212,34 @@ export default function PoseTrackerPage() {
         angle,
         label: selectedJoint.label,
         timestamp: Date.now(),
+        range: selectedJoint.range, // Add range to the snapshot
       },
     ]);
+    
   };
+
+  useEffect(() => {
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      const videoInputs = devices.filter((d) => d.kind === "videoinput");
+      setCameras(videoInputs);
+      if (!selectedDeviceId && videoInputs.length > 0) {
+        setSelectedDeviceId(videoInputs[0].deviceId);
+      }
+    });
+  }, []);
+
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (cameraStarted && selectedDeviceId) {
+      timeout = setTimeout(() => {
+        stopCamera();
+        startCamera();
+      }, 250); // wait a bit to avoid rapid toggling
+    }
+    return () => clearTimeout(timeout);
+  }, [selectedDeviceId]);
+
 
 
   return (
@@ -229,6 +282,22 @@ export default function PoseTrackerPage() {
         >
           {cameraStarted ? "Stop Camera" : "Start Camera"}
         </button>
+
+        {cameras.length > 1 && (
+          <select
+            value={selectedDeviceId ?? ""}
+            onChange={(e) => setSelectedDeviceId(e.target.value)}
+            className="border p-2 rounded text-sm"
+          >
+            {cameras.map((cam) => (
+              <option key={cam.deviceId} value={cam.deviceId}>
+                {cam.label || `Camera ${cam.deviceId.slice(-4)}`}
+              </option>
+            ))}
+          </select>
+        )}
+
+        
         <button
           onClick={resetAngles}
           className="bg-gray-600 text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform"
@@ -238,17 +307,48 @@ export default function PoseTrackerPage() {
       </motion.div>
 
       <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleCaptureSnapshot}
-          className="bg-green-600 text-white px-4 py-2 rounded shadow-lg hover:shadow-xl transition-shadow"
-        >
-          Capture Snapshot
-        </motion.button>
+        <div className="relative flex items-center gap-2">
+          {/* Snapshot button */}
+          <button
+            onClick={handleDelayedSnapshot}
+            disabled={countdown !== null}
+            className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            {countdown !== null ? `Capturing in ${countdown}` : "Capture Snapshot"}
+          </button>
+
+          {/* Arrow to open delay menu */}
+          <button
+            onClick={() => setShowDelayPicker((prev) => !prev)}
+            className="bg-green-700 text-white px-2 py-2 rounded"
+            aria-label="Set delay"
+          >
+            ⏱️
+          </button>
+
+          {/* Inline delay picker */}
+          {showDelayPicker && (
+            <div className="absolute top-full mt-2 left-0 bg-white border rounded shadow-md p-2 z-10">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Delay:</span>
+                <button
+                  onClick={() => setDelaySeconds(Math.max(0, delaySeconds - 1))}
+                  className="px-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  −
+                </button>
+                <span className="w-6 text-center">{delaySeconds}s</span>
+                <button
+                  onClick={() => setDelaySeconds(delaySeconds + 1)}
+                  className="px-2 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
 
         {snapshots.length > 0 && (
           <motion.button
@@ -288,6 +388,7 @@ export default function PoseTrackerPage() {
           minAngle={minAngle.current}
           labels={selectedJoint?.labels}
           calc={selectedJoint?.calc}
+          range={selectedJoint?.range}
         />
 
         {!visible && selectedJoint?.visibility && (

@@ -1,40 +1,52 @@
 import { useEffect, useRef, useState } from "react";
 
-export function useCamera(videoRef: React.RefObject<HTMLVideoElement>, pose: any) {
+
+
+export function useCamera(
+  videoRef: React.RefObject<HTMLVideoElement>,
+  pose: any,
+  deviceId: string | null
+) {
   const [cameraStarted, setStarted] = useState(false);
-  const cameraRef = useRef<any>(null); // Store the camera instance
+  const cameraRef = useRef<any>(null);
 
   const startCamera = async () => {
-    if (cameraStarted || !videoRef.current) return;
+    if (!pose || !videoRef.current || !deviceId) return;
 
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js";
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { exact: deviceId } },
+    });
 
-    script.onload = () => {
-      const CameraClass = (window as any).Camera;
-      if (CameraClass && videoRef.current) {
-        const camera = new CameraClass(videoRef.current, {
-          onFrame: async () => {
-            if (pose) await pose.send({ image: videoRef.current });
-          },
-        });
+    videoRef.current.srcObject = stream;
+    await videoRef.current.play();
 
-        camera.start();
-        cameraRef.current = camera; // Save the instance
-        setStarted(true);
-      }
-    };
+    const CameraClass = (window as any).Camera;
+    if (CameraClass) {
+      const camera = new CameraClass(videoRef.current, {
+        onFrame: async () => {
+          if (pose) await pose.send({ image: videoRef.current });
+        },
+      });
 
-    document.body.appendChild(script);
+      await camera.start(); // ensure it's done starting
+      cameraRef.current = camera;
+      setStarted(true); // 
+    }
   };
 
   const stopCamera = () => {
     if (cameraRef.current) {
-      cameraRef.current.stop(); // Stop the camera feed
+      cameraRef.current.stop();
       cameraRef.current = null;
     }
-    setStarted(false);
+
+    const tracks = videoRef.current?.srcObject?.getTracks();
+    tracks?.forEach((track) => track.stop());
+    if (videoRef.current) videoRef.current.srcObject = null;
+
+    setStarted(false); // 
   };
 
   return { startCamera, stopCamera, cameraStarted };
+
 }
