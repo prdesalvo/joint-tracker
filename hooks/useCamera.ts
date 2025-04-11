@@ -9,6 +9,7 @@ export function useCamera(
   const cameraRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraUtilsReady, setCameraUtilsReady] = useState(false);
+  const didInit = useRef(false); // Added didInit ref
 
   // ✅ Load camera_utils script on mount
   useEffect(() => {
@@ -86,6 +87,18 @@ export function useCamera(
       setCameraStarted(false);
     }
   }, [pose, videoRef, deviceId, cameraUtilsReady, stopCamera]);
+
+  useEffect(() => {
+    if (!didInit.current) {
+      didInit.current = true;
+      return;
+    }
+
+    if (selectedDeviceId && cameraStarted) {
+      console.log("🔁 Switching camera to:", selectedDeviceId);
+      startCamera(); // Only start the new camera, old one will be stopped
+    }
+  }, [selectedDeviceId]);
 
   return { startCamera, stopCamera, cameraStarted };
 }
