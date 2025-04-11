@@ -33,6 +33,23 @@ export default function PoseTrackerPage() {
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
 
+  useEffect(() => {
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      const videoInputs = devices.filter((d) => d.kind === "videoinput");
+      setCameras(videoInputs);
+
+      // ✅ Only assign default camera on first load
+      setSelectedDeviceId((currentId) => {
+        if (!currentId && videoInputs.length > 0) {
+          return videoInputs[0].deviceId;
+        }
+        return currentId;
+      });
+    });
+  }, []);
+
+
+
 
   useEffect(() => {
     selectedJointIdRef.current = selectedJointId;
@@ -153,6 +170,7 @@ export default function PoseTrackerPage() {
   }, [selectedJoint]);
 
   const { holistic, ready } = useHolistic(onResults);
+  console.log("Holistic ready?", ready);
   // const { startCamera } = useCamera(videoRef, holistic);
   const { startCamera, stopCamera, cameraStarted } = useCamera(videoRef, holistic, selectedDeviceId);
 
@@ -217,17 +235,6 @@ export default function PoseTrackerPage() {
     ]);
     
   };
-
-  useEffect(() => {
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      const videoInputs = devices.filter((d) => d.kind === "videoinput");
-      setCameras(videoInputs);
-      if (!selectedDeviceId && videoInputs.length > 0) {
-        setSelectedDeviceId(videoInputs[0].deviceId);
-      }
-    });
-  }, []);
-
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
