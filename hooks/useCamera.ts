@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 export function useCamera(
   videoRef: React.RefObject<HTMLVideoElement>,
@@ -8,36 +7,42 @@ export function useCamera(
 ) {
   const [cameraStarted, setCameraStarted] = useState(false);
   const cameraRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (cameraRef.current) {
-        cameraRef.current.stop();
-        cameraRef.current = null;
-      }
-      const tracks = videoRef.current?.srcObject?.getTracks();
-      tracks?.forEach((track) => track.stop());
-      if (videoRef.current) videoRef.current.srcObject = null;
-    };
-  }, []);
+  const stopCamera = useCallback(() => {
+    if (cameraRef.current) {
+      cameraRef.current.stop();
+      cameraRef.current = null;
+    }
 
-  const startCamera = async () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    setCameraStarted(false);
+  }, [videoRef]);
+
+  const startCamera = useCallback(async () => {
     if (!pose || !videoRef.current || !deviceId) return;
 
     try {
+      stopCamera(); // always stop before starting a new one
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: { exact: deviceId } },
       });
 
-      if (!videoRef.current) return;
+      streamRef.current = stream;
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
 
       const CameraClass = (window as any).Camera;
       if (CameraClass) {
-        if (cameraRef.current) {
-          cameraRef.current.stop();
-        }
         const camera = new CameraClass(videoRef.current, {
           onFrame: async () => {
             if (pose) await pose.send({ image: videoRef.current });
@@ -52,20 +57,11 @@ export function useCamera(
       console.error("Error starting camera:", error);
       setCameraStarted(false);
     }
-  };
+  }, [pose, videoRef, deviceId, stopCamera]);
 
-  const stopCamera = useCallback(() => {
-    if (cameraRef.current) {
-      cameraRef.current.stop();
-      cameraRef.current = null;
-    }
-
-    const tracks = videoRef.current?.srcObject?.getTracks();
-    tracks?.forEach((track) => track.stop());
-    if (videoRef.current) videoRef.current.srcObject = null;
-
-    setCameraStarted(false);
-  }, []);
+  useEffect(() => {
+    return () => stopCamera(); // clean up on unmount
+  }, [stopCamera]);
 
   return { startCamera, stopCamera, cameraStarted };
 }
