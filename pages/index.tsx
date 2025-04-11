@@ -237,15 +237,11 @@ export default function PoseTrackerPage() {
   };
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
     if (cameraStarted && selectedDeviceId) {
-      timeout = setTimeout(() => {
-        stopCamera();
-        startCamera();
-      }, 250); // wait a bit to avoid rapid toggling
+      stopCamera();
+      startCamera();
     }
-    return () => clearTimeout(timeout);
-  }, [selectedDeviceId]);
+  }, []); // Only run once on mount when camera is started
 
 
 
