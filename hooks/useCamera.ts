@@ -94,11 +94,11 @@ export function useCamera(
       return;
     }
 
-    if (selectedDeviceId && cameraStarted) {
-      console.log("🔁 Switching camera to:", selectedDeviceId);
+    if (deviceId && cameraStarted) {
+      console.log("🔁 Switching camera to:", deviceId);
       startCamera(); // Only start the new camera, old one will be stopped
     }
-  }, [selectedDeviceId]);
+  }, [deviceId]);
 
   return { startCamera, stopCamera, cameraStarted };
 }
