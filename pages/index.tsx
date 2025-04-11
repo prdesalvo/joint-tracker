@@ -435,18 +435,25 @@ export default function PoseTrackerPage() {
 
         {snapshots.length > 0 && (
           <div className="mt-6">
-            <div className="mb-4">
-              <label htmlFor="patientName" className="block text-sm font-medium text-gray-700 mb-1">
-                Patient Name (for PDF report)
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+              <label htmlFor="patientName" className="block text-lg font-semibold text-gray-800 mb-2">
+                Patient Name
               </label>
-              <input
-                type="text"
-                id="patientName"
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-                placeholder="Enter patient name"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  id="patientName"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  className="block w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                  placeholder="Enter patient name for PDF report"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
             </div>
             <h2 className="text-lg font-semibold mb-2">Captured Snapshots</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
