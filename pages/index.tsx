@@ -237,18 +237,7 @@ export default function PoseTrackerPage() {
     
   };
 
-  useEffect(() => {
-    if (!didInit.current) {
-      didInit.current = true;
-      return;
-    }
-
-    if (cameraStarted && selectedDeviceId) {
-      console.log("🔁 Switching camera to:", selectedDeviceId);
-      stopCamera();
-      startCamera();
-    }
-  }, [selectedDeviceId]);
+  
 
 
 
