@@ -276,32 +276,35 @@ export default function PoseTrackerPage() {
 
 
 
-        <button
-          onClick={resetAngles}
-          className="bg-gray-600 text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform"
-        >
-          Reset Max Angles
-        </button>
-      </motion.div>
+        </motion.div>
 
-      <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
-        <div className="relative flex items-center gap-2">
-          {/* Snapshot button */}
-          <button
-            onClick={handleDelayedSnapshot}
-            disabled={countdown !== null}
-            className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            {countdown !== null ? `Capturing in ${countdown}` : "Capture Snapshot"}
-          </button>
+      {cameraStarted && (
+        <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
+          <div className="relative flex items-center gap-2">
+            {/* Snapshot button */}
+            <button
+              onClick={handleDelayedSnapshot}
+              disabled={countdown !== null}
+              className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              {countdown !== null ? `Capturing in ${countdown}` : "Capture Snapshot"}
+            </button>
 
-          {/* Arrow to open delay menu */}
+            {/* Arrow to open delay menu */}
+            <button
+              onClick={() => setShowDelayPicker((prev) => !prev)}
+              className="bg-green-700 text-white px-2 py-2 rounded"
+              aria-label="Set delay"
+            >
+              ⏱️
+            </button>
+          </div>
+
           <button
-            onClick={() => setShowDelayPicker((prev) => !prev)}
-            className="bg-green-700 text-white px-2 py-2 rounded"
-            aria-label="Set delay"
+            onClick={resetAngles}
+            className="bg-gray-600 text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform"
           >
-            ⏱️
+            Reset Max Angles
           </button>
 
           {/* Inline delay picker */}
