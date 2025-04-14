@@ -35,10 +35,10 @@ export const calcHandlers: Record<
     draw: (ctx, [top, bottom], angle) => drawNeckPitchArc(ctx, top, bottom, angle),
   },
   yawFromNose: {
-    compute: (A, B, C, D, E, joint) => 
+    compute: (A, B, C, joint) => 
       joint.direction === "left"
-        ? -computeYawFromNose([A, B, C, D, E])
-        : computeYawFromNose([A, B, C, D, E]),
+        ? computeYawFromNose([A, B, C])
+        : -computeYawFromNose([A, B, C]),
     draw: (ctx, _points, angle) => {
       const center = {
         x: ctx.canvas.width / 2,
