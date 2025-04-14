@@ -274,76 +274,69 @@ export default function PoseTrackerPage() {
           </div>
         )}
 
+      </motion.div>
 
 
-        </motion.div>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+        {cameraStarted && (
+          <>
+            <div className="relative flex items-center gap-2">
+              <button
+                onClick={resetAngles}
+                className="bg-gray-600 text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform"
+              >
+                Reset Max Angles
+              </button>
+              
+              {/* Snapshot button */}
+              <button
+                onClick={handleDelayedSnapshot}
+                disabled={countdown !== null}
+                className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
+              >
+                {countdown !== null ? `Capturing in ${countdown}` : "Capture Snapshot"}
+              </button>
 
-      {cameraStarted && (
-        <div className="flex flex-col items-center justify-center gap-4 mb-6 sm:flex-row sm:items-stretch">
-          <div className="relative flex items-center gap-2">
-            {/* Snapshot button */}
-            <button
-              onClick={handleDelayedSnapshot}
-              disabled={countdown !== null}
-              className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
-            >
-              {countdown !== null ? `Capturing in ${countdown}` : "Capture Snapshot"}
-            </button>
+              {/* Delay picker toggle */}
+              <button
+                onClick={() => setShowDelayPicker((prev) => !prev)}
+                className="bg-green-700 text-white px-2 py-2 rounded"
+                aria-label="Set delay"
+              >
+                ⏱️
+              </button>
 
-            {/* Arrow to open delay menu */}
-            <button
-              onClick={() => setShowDelayPicker((prev) => !prev)}
-              className="bg-green-700 text-white px-2 py-2 rounded"
-              aria-label="Set delay"
-            >
-              ⏱️
-            </button>
-          </div>
-
-          <button
-            onClick={resetAngles}
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:scale-105 active:scale-95 transition-transform"
-          >
-            Reset Max Angles
-          </button>
-
-          {/* Inline delay picker */}
-          {showDelayPicker && (
-            <div className="absolute top-full mt-2 left-0 bg-white border rounded shadow-md p-2 z-10">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">Delay:</span>
-                <button
-                  onClick={() => setDelaySeconds(Math.max(0, delaySeconds - 1))}
-                  className="px-2 bg-gray-200 rounded hover:bg-gray-300"
-                >
-                  −
-                </button>
-                <span className="w-6 text-center">{delaySeconds}s</span>
-                <button
-                  onClick={() => setDelaySeconds(delaySeconds + 1)}
-                  className="px-2 bg-gray-200 rounded hover:bg-gray-300"
-                >
-                  +
-                </button>
-              </div>
+              {/* Delay picker dropdown */}
+              {showDelayPicker && (
+                <div className="absolute top-full mt-2 left-0 bg-white border rounded shadow-md p-2 z-10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-700">Delay:</span>
+                    <button onClick={() => setDelaySeconds(Math.max(0, delaySeconds - 1))} className="px-2 bg-gray-200 rounded hover:bg-gray-300">−</button>
+                    <span className="w-6 text-center">{delaySeconds}s</span>
+                    <button onClick={() => setDelaySeconds(delaySeconds + 1)} className="px-2 bg-gray-200 rounded hover:bg-gray-300">+</button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
+            {snapshots.length > 0 && (
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => exportSnapshotsToPDF(snapshots, patientName, sessionDate)}
+                className="bg-purple-600 text-white px-4 py-2 rounded"
+              >
+                Download PDF Report
+              </motion.button>
+            )}
 
-        {snapshots.length > 0 && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => exportSnapshotsToPDF(snapshots, patientName, sessionDate)}
-            className="bg-purple-600 text-white px-4 py-2 rounded"
-          >
-            Download PDF Report
-          </motion.button>
+            
+          </>
         )}
       </div>
+
 
       {selectedJoint && (
         <div className="bg-blue-50 p-4 rounded border border-blue-200 text-sm mb-4">
