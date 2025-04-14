@@ -17,7 +17,7 @@ export default function PoseTrackerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [, forceUpdate] = useState(0);
-  const [selectedJointId, setSelectedJointId] = useState("headTilt");
+  const [selectedJointId, setSelectedJointId] = useState("");
   const selectedJointIdRef = useRef(selectedJointId);
   const [patientName, setPatientName] = useState("Test Patient");
   const [sessionDate, setSessionDate] = useState(() =>
@@ -233,6 +233,7 @@ export default function PoseTrackerPage() {
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedJointId(e.target.value)}
           className="border p-2 rounded hover:scale-102 transition-transform"
         >
+          <option value="">Select a joint to measure...</option>
           {joints.map((joint) => (
             <option key={joint.id} value={joint.id}>
               {joint.label}
