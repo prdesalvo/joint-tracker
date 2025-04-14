@@ -4,13 +4,14 @@ import NavHeader from "../components/NavHeader";
 import Footer from "../components/Footer";
 import AngleBar from "../components/AngleBar";
 import { joints } from "../hooks/jointConfig";
-import { computeYawFromNose, getAngle, getFlexionAngle, getTiltAngle, drawAngleArc, drawTiltAngleArc, drawYawArc } from "../utils/geometry";
 import { useHolistic } from "../hooks/useHolistic";
 import { useCamera } from "../hooks/useCamera";
 import { useResizeCanvas } from "../hooks/useResizeCanvas";
 import { drawPoseAnnotations } from "../utils/mediapipeDrawing";
 import { capturePoseSnapshot } from "../utils/capture";
 import { exportSnapshotsToPDF } from "../utils/exportPdf";
+import { getNormalizedPoints } from "../utils/landmarks";
+import { calcHandlers } from "../utils/handlers";
 
 export default function PoseTrackerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -70,6 +71,7 @@ export default function PoseTrackerPage() {
     const jointId = selectedJointIdRef.current;
     const selectedJoint = joints.find(j => j.id === jointId);
     if (!selectedJoint) return;
+
     const canvas = canvasRef.current;
     const video = videoRef.current;
     if (!canvas || !video) return;
@@ -94,61 +96,22 @@ export default function PoseTrackerPage() {
       return;
     }
 
-    const toPx = (point: any) => ({
-      x: point.x * width,
-      y: point.y * height,
-      visible: point.visibility === undefined || point.visibility > 0.7,
-    });
-
-    const points = selectedJoint.indices.map(i => toPx(landmarks[i]));
+    const points = getNormalizedPoints(selectedJoint.indices, landmarks, width, height);
     const allVisible = points.every(p => p.visible);
-    setVisible(allVisible);
-
     if (!allVisible) {
       setAngle(null);
+      setVisible(false);
       return;
     }
 
+    setVisible(true);
+
     let rawAngle: number | null = null;
-
     try {
-      if (selectedJoint.calc === "yawFromNose") {
-        rawAngle = computeYawFromNose(results.faceLandmarks);
-        if (rawAngle !== null) {
-          const centerX = width / 2;
-          const centerY = height * 0.25;
-          drawYawArc(ctx, centerX, centerY, rawAngle);
-        }
-      }
-
-      else if (selectedJoint.calc === "tilt") {
-        if (points.length >= 2) {
-          const [A, B] = points;
-          rawAngle = getTiltAngle(A, B);
-          drawTiltAngleArc(ctx, A, B, rawAngle);
-        } else {
-          console.warn("Tilt calculation requires 2 points");
-        }
-      }
-
-      else if (selectedJoint.calc === "Flexion") {
-        if (points.length === 3) {
-          const [A, B, C] = points;
-          rawAngle = getFlexionAngle(A, B, C);
-          drawAngleArc(ctx, A, B, C, rawAngle);
-        } else {
-          console.warn("Flexion calculation requires 3 points");
-        }
-      }
-
-      else if (points.length === 3) {
-        const [A, B, C] = points;
-        rawAngle = getAngle(A, B, C);
-        drawAngleArc(ctx, A, B, C, rawAngle);
-      }
-
-      else {
-        console.warn("Insufficient points for angle calculation", points);
+      const handler = calcHandlers[selectedJoint.calc] || calcHandlers.default;
+      rawAngle = handler.compute(...points, selectedJoint);
+      if (rawAngle !== null) {
+        handler.draw(ctx, points, rawAngle);
       }
     } catch (err) {
       console.error("Error while computing/drawing angle:", err);
@@ -166,8 +129,7 @@ export default function PoseTrackerPage() {
     }
 
     setAngle(rawAngle);
-
-  }, [selectedJoint]);
+  }, []);
 
   const { holistic, ready } = useHolistic(onResults);
   console.log("Holistic ready?", ready);
@@ -242,10 +204,6 @@ export default function PoseTrackerPage() {
     ]);
 
   };
-
-
-
-
 
   return (
     <motion.div
@@ -425,7 +383,7 @@ export default function PoseTrackerPage() {
           <video ref={videoRef} playsInline className="w-full" />
           <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
         </div>
-        
+
         <hr className="my-8 border-t border-gray-200" />
       </motion.div>
 
@@ -470,7 +428,7 @@ export default function PoseTrackerPage() {
                 </div>
               </div>
             </div>
-            
+
           </div>
         )}
 

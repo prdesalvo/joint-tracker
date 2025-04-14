@@ -39,47 +39,40 @@ export function getTiltAngle(left: { x: number; y: number }, right: { x: number;
   return angleRadians * (180 / Math.PI); // degrees
 }
 
-export function computeYawFromNose(landmarks: any[]): number | null {
-  if (!landmarks) return null;
+export function computeYawFromNose(points: { x: number; y: number }[]): number | null {
+  const [noseTip, leftCheek, rightCheek] = points;
 
-  // First, try using eye + nose landmarks
-  const leftEye = landmarks[33];
-  const rightEye = landmarks[263];
-  const noseTip = landmarks[4];
+  // Midpoint between cheeks (horizontal center of the face)
+  const faceCenter = {
+    x: (leftCheek.x + rightCheek.x) / 2,
+    y: (leftCheek.y + rightCheek.y) / 2,
+  };
 
-  if (leftEye && rightEye && noseTip) {
-    const eyeCenter = {
-      x: (leftEye.x + rightEye.x) / 2,
-      z: (leftEye.z + rightEye.z) / 2,
-    };
+  // Distance from nose to face center
+  const offsetX = noseTip.x - faceCenter.x;
 
-    const deltaX = noseTip.x - eyeCenter.x;
-    const deltaZ = noseTip.z - eyeCenter.z;
+  // Distance between cheeks = face width
+  const faceWidth = Math.hypot(leftCheek.x - rightCheek.x, leftCheek.y - rightCheek.y);
 
-    const yawRad = Math.atan2(deltaZ, deltaX);
-    const yawDeg = (yawRad * 180) / Math.PI;
-    return Math.max(-90, Math.min(90, yawDeg + 90));
-  }
+  if (faceWidth === 0) return null;
 
-  // Fallback: use cheek or jaw landmarks for side profiles
-  const leftCheek = landmarks[205];
-  const rightCheek = landmarks[425];
+  // Normalize offset to face width
+  const normalized = offsetX / (faceWidth / 2); // range: ~ -1 to 1
+  const clamped = Math.max(-1, Math.min(1, normalized));
 
-  if (leftCheek && rightCheek) {
-    const deltaX = rightCheek.x - leftCheek.x;
-    const deltaZ = rightCheek.z - leftCheek.z;
-
-    const yawRad = Math.atan2(deltaZ, deltaX);
-    const yawDeg = (yawRad * 180) / Math.PI;
-
-    return Math.max(-90, Math.min(90, yawDeg));
-  }
-
-  // Fallback failed
-  return null;
+  const yawAngle = clamped * 45; // Full range: -90° (far left) to +90° (far right)
+  return yawAngle;
 }
 
 
+export function getNeckPitchAngle(top: { x: number; y: number }, bottom: { x: number; y: number }): number {
+  const dx = bottom.x - top.x;
+  const dy = bottom.y - top.y;
+  const radians = Math.atan2(dy, dx);
+  return (radians * 180) / Math.PI;
+}
+
+// drawings 
 function applyDefaultArcStyle(ctx: CanvasRenderingContext2D, color = "#FFCC00") {
   ctx.strokeStyle = color;
   ctx.lineWidth = 3;
@@ -149,11 +142,10 @@ export function drawTiltAngleArc(
 
 export function drawYawArc(
   ctx: CanvasRenderingContext2D,
-  centerX: number,
-  centerY: number,
+  origin: { x: number; y: number },
   angleDeg: number,
   radius: number = 50,
-  label: string = `${Math.round(angleDeg)}°`
+  label?: string
 ) {
   const startAngle = (-angleDeg * Math.PI) / 180;
   const endAngle = 0;
@@ -161,8 +153,59 @@ export function drawYawArc(
   ctx.save();
   ctx.beginPath();
   applyDefaultArcStyle(ctx, "#FFD700");
-  ctx.arc(centerX, centerY, radius, startAngle, endAngle, angleDeg < 0);
+  ctx.arc(origin.x, origin.y, radius, startAngle, endAngle, angleDeg < 0);
   ctx.stroke();
-  drawAngleLabel(ctx, centerX, centerY - radius - 10, label, "#FFD700");
+
+  drawAngleLabel(
+    ctx,
+    origin.x,
+    origin.y - radius - 10,
+    label ?? `${Math.round(angleDeg)}°`,
+    "#FFD700"
+  );
+  ctx.restore();
+}
+
+export function drawNeckPitchArc(
+  ctx: CanvasRenderingContext2D,
+  top: { x: number; y: number },
+  bottom: { x: number; y: number },
+  angleDeg: number,
+  radius: number = 40,
+  label?: string
+) {
+  const dx = bottom.x - top.x;
+  const dy = bottom.y - top.y;
+  const theta = Math.atan2(dy, dx); // angle from horizontal
+
+  ctx.save();
+
+  // Reference line: vertical downward
+  ctx.beginPath();
+  applyDefaultArcStyle(ctx);
+  ctx.moveTo(top.x, top.y);
+  ctx.lineTo(top.x, top.y + radius);
+  ctx.stroke();
+
+  // Nose vector line
+  ctx.beginPath();
+  applyDefaultArcStyle(ctx);
+  ctx.moveTo(top.x, top.y);
+  ctx.lineTo(bottom.x, bottom.y);
+  ctx.stroke();
+
+  // Arc between vertical and nose vector
+  ctx.beginPath();
+  applyDefaultArcStyle(ctx);
+  ctx.arc(top.x, top.y, radius, Math.PI / 2, theta, theta < Math.PI / 2);
+  ctx.stroke();
+
+  drawAngleLabel(
+    ctx,
+    top.x + 10,
+    top.y - 10,
+    label ?? `${angleDeg.toFixed(1)}°`
+  );
+
   ctx.restore();
 }

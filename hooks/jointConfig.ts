@@ -1,12 +1,32 @@
 export const joints = [
   {
-    id: "headTilt",
-    label: "Head Tilt (Roll)",
+    id: "headTiltLeft",
+    label: "Head Tilt Left",
+    direction: "left",
     indices: [33, 263],
     type: "face",
     calc: "tilt",
     labels: {
-      min: "Left Tilt",
+      min: "Neutral",
+      max: "Left Tilt",
+    },
+    range: {
+      good: 45,
+      fair: 38.25,
+      poor: 31.5,
+    },
+    instructions: "Tilt your head toward your left shoulder.",
+    positioning: "Face the camera directly with your shoulders level.",
+    visibility: "Your full face should be visible, including both outer eye corners."
+  },
+  {
+    id: "headTiltRight",
+    label: "Head Tilt Right",
+    indices: [33, 263],
+    type: "face",
+    calc: "tilt",
+    labels: {
+      min: "Neutral",
       max: "Right Tilt",
     },
     range: {
@@ -14,14 +34,14 @@ export const joints = [
       fair: 38.25,
       poor: 31.5,
     },
-    instructions: "Tilt your head side to side, like trying to bring your ear toward your shoulder.",
+    instructions: "Tilt your head toward your right shoulder.",
     positioning: "Face the camera directly with your shoulders level.",
     visibility: "Your full face should be visible, including both outer eye corners."
   },
   {
     id: "headRotation",
     label: "Head Rotation (Yaw)",
-    indices: [234, 1, 454],
+    indices: [1, 234, 454],
     type: "face",
     calc: "yawFromNose",
     labels: {
@@ -42,19 +62,20 @@ export const joints = [
       label: "Neck Flexion/Extension",
       indices: [10, 4, 152],
       type: "face",
-      calc: "Flexion",
+      calc: "Neck",
       labels: {
-        min: "Extension (Look Up)",
-        max: "Flexion (Look Down)",
+        min: "Extension (Look Down)",
+        max: "Flexion (Look Up)",
       },
       range: {
         good: 80,
         fair: 68,
         poor: 56,
       },
-      instructions: "Nod your head up and down to measure your neck's range of motion.",
-      positioning: "Sit or stand facing the camera with your body aligned vertically.",
-      visibility: "Your full face, including forehead, nose, and chin, must be visible."
+      instructions: "Slowly nod your head up and down to measure how far you can look down and up.",
+      positioning: "Stand or sit sideways to the camera so your full head and neck are visible in profile.",
+      visibility: "Ensure the side of your face, including the tip and bridge of your nose, are clearly visible without obstruction.",
+
     },
     {
     id: "leftElbow",
