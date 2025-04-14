@@ -1,3 +1,4 @@
+// handlers.ts 
 import {
   getAngle,
   getFlexionAngle,
@@ -34,7 +35,10 @@ export const calcHandlers: Record<
     draw: (ctx, [top, bottom], angle) => drawNeckPitchArc(ctx, top, bottom, angle),
   },
   yawFromNose: {
-    compute: (A, B, C, D, E) => computeYawFromNose([A, B, C, D, E]),
+    compute: (A, B, C, D, E, joint) => 
+      joint.direction === "left"
+        ? -computeYawFromNose([A, B, C, D, E])
+        : computeYawFromNose([A, B, C, D, E]),
     draw: (ctx, _points, angle) => {
       const center = {
         x: ctx.canvas.width / 2,

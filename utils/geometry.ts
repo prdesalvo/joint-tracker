@@ -1,3 +1,4 @@
+// geometry.ts
 export function getAngle(A: any, B: any, C: any) {
   const AB = { x: A.x - B.x, y: A.y - B.y };
   const CB = { x: C.x - B.x, y: C.y - B.y };
@@ -42,25 +43,28 @@ export function getTiltAngle(left: { x: number; y: number }, right: { x: number;
 export function computeYawFromNose(points: { x: number; y: number }[]): number | null {
   const [noseTip, leftCheek, rightCheek] = points;
 
-  // Midpoint between cheeks (horizontal center of the face)
-  const faceCenter = {
-    x: (leftCheek.x + rightCheek.x) / 2,
-    y: (leftCheek.y + rightCheek.y) / 2,
-  };
+ // Compute the Euclidean distance from the nose tip to each cheek.
+  const leftDistance = Math.hypot(noseTip.x - leftCheek.x, noseTip.y - leftCheek.y);
+  const rightDistance = Math.hypot(noseTip.x - rightCheek.x, noseTip.y - rightCheek.y);
 
-  // Distance from nose to face center
-  const offsetX = noseTip.x - faceCenter.x;
-
-  // Distance between cheeks = face width
+  // Use the distance between the cheeks as the reference "face width".
   const faceWidth = Math.hypot(leftCheek.x - rightCheek.x, leftCheek.y - rightCheek.y);
-
   if (faceWidth === 0) return null;
 
-  // Normalize offset to face width
-  const normalized = offsetX / (faceWidth / 2); // range: ~ -1 to 1
-  const clamped = Math.max(-1, Math.min(1, normalized));
+  // Calculate a normalized yaw ratio based on the difference in distances.
+  // When the head rotates, one cheek gets closer and the other farther:
+  // - If leftDistance is larger than rightDistance, then the head is turned to the right (from the subject's perspective).
+  // - If rightDistance is larger, then the head is turned to the left.
+  const yawRatio = (leftDistance - rightDistance) / faceWidth;
 
-  const yawAngle = clamped * 45; // Full range: -90° (far left) to +90° (far right)
+  // Clamp the ratio to ensure it’s within the range [-1, 1].
+  const clampedRatio = Math.max(-1, Math.min(1, yawRatio));
+
+  // Multiply by a maximum yaw angle (in degrees) to scale the result.
+  // Adjust maxYawAngle as needed—for example, 45 for a range of approximately -45° to +45°.
+  const maxYawAngle = 90;
+  const yawAngle = clampedRatio * maxYawAngle;
+
   return yawAngle;
 }
 
