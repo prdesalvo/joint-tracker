@@ -37,8 +37,8 @@ export const calcHandlers: Record<
   yawFromNose: {
     compute: (A, B, C, joint) => 
       joint.direction === "left"
-        ? computeYawFromNose([A, B, C])
-        : -computeYawFromNose([A, B, C]),
+        ? (computeYawFromNose([A, B, C]) ?? 0)
+        : -(computeYawFromNose([A, B, C]) ?? 0),
     draw: (ctx, _points, angle) => {
       const center = {
         x: ctx.canvas.width / 2,
