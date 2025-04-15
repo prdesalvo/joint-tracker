@@ -55,9 +55,10 @@ export const joints = [
       fair: 76.5,
       poor: 63.3,
     },
-    instructions: "Rotate your head to the left like you're checking over each shoulder.",
-    positioning: "Sit or stand upright facing the camera with your shoulders squared.",
-    visibility: "Ensure your nose and both sides of your face are visible."
+    instructions: "Start by facing the wall to your right with your left side closest to the camera. Then slowly rotate your head to the left, turning toward the camera as far as you can.",
+    positioning: "Sit or stand upright with your left shoulder facing the camera and your body aligned sideways.",
+    visibility: "Ensure your full face, especially the nose and cheeks, become visible as you rotate."
+
   },
   {
     id: "headRotationRight",
@@ -75,28 +76,51 @@ export const joints = [
       fair: 76.5,
       poor: 63.3,
     },
-    instructions: "Rotate your head to the right like you're checking over each shoulder.",
-    positioning: "Sit or stand upright facing the camera with your shoulders squared.",
-    visibility: "Ensure your nose and both sides of your face are visible."
+    instructions: "Start by facing the wall to your left with your left side closest to the camera. Then slowly rotate your head to the right, turning toward the camera as far as you can.",
+    positioning: "Sit or stand upright with your right shoulder facing the camera and your body aligned sideways.",
+    visibility: "Ensure your full face, especially the nose and cheeks, become visible as you rotate."
+
   },
   {
-    id: "neckFlexion",
-    label: "Neck Flexion/Extension",
-    indices: [10, 4, 152],
+    id: "neckExtension",
+    label: "Neck Extension",
+    direction: "up",
+    indices: [10, 152],
     type: "face",
     calc: "Neck",
     labels: {
-      min: "Extension (Look Down)",
-      max: "Flexion (Look Up)",
+      min: "Neutral",
+      max: "Extension (Look Up)",
     },
     range: {
       good: 80,
       fair: 68,
       poor: 56,
     },
-    instructions: "Slowly nod your head up and down to measure how far you can look down and up.",
-    positioning: "Stand or sit sideways to the camera so your full head and neck are visible in profile.",
-    visibility: "Ensure the side of your face, including the tip and bridge of your nose, are clearly visible without obstruction.",
+    instructions: "Slowly nod your head up.",
+    positioning: "Stand or sit at a slight profile to the camera so your full head and neck are visible in profile.",
+    visibility: "Ensure the side of your face, including the forehead and chin, are clearly visible without obstruction.",
+
+  },
+  {
+    id: "neckFlexion",
+    label: "Neck Flexion",
+    direction: "down",
+    indices: [10, 152],
+    type: "face",
+    calc: "Neck",
+    labels: {
+      min: "Neutral",
+      max: "Flexion (Look Down)",
+    },
+    range: {
+      good: 25.0,
+      fair: 21.25,
+      poor: 17.5,
+    },
+    instructions: "Slowly nod your head down.",
+    positioning: "Stand or sit at a slight profile to the camera so your full head and neck are visible in profile.",
+    visibility: "Ensure the side of your face, including the forehead and chin, are clearly visible without obstruction.",
 
   },
   {

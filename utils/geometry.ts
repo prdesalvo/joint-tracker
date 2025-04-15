@@ -73,7 +73,7 @@ export function getNeckPitchAngle(top: { x: number; y: number }, bottom: { x: nu
   const dx = bottom.x - top.x;
   const dy = bottom.y - top.y;
   const radians = Math.atan2(dy, dx);
-  return (radians * 180) / Math.PI;
+  return (radians * 180) / Math.PI - 90;
 }
 
 // drawings 
